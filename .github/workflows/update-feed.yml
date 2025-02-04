@@ -23,7 +23,9 @@ jobs:
       - name: Executar script
         run: python script.py
 
-            - name: Commit e Push das mudanças
+      - name: Commit e Push das mudanças
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           git config --local user.name "github-actions"
           git config --local user.email "actions@github.com"
