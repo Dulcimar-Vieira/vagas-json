@@ -3,31 +3,30 @@ name: Atualizar JSON de Vagas
 on:
   schedule:
     - cron: "0 */12 * * *"  # Executa a cada 12 horas
-  workflow_dispatch:  # Permite rodar manualmente
+  workflow_dispatch:  # Permite execução manual
 
 jobs:
-  build:
+  update-feed:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Clonar o repositório
+      - name: Checkout do repositório
         uses: actions/checkout@v3
 
       - name: Configurar Python
         uses: actions/setup-python@v3
         with:
-          python-version: "3.x"
+          python-version: '3.x'
 
       - name: Instalar dependências
-        run: pip install requests
+        run: pip install requests xmltodict
 
-      - name: Baixar e processar o feed
+      - name: Executar script
         run: python script.py
 
-      - name: Commit e enviar mudanças
+      - name: Commit e Push das mudanças
         run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
           git add vagas.json
-          git commit -m "Atualização automática do JSON"
+          git commit -m "Atualizando vagas.json"
           git push
