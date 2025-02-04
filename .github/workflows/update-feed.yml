@@ -23,10 +23,10 @@ jobs:
       - name: Executar script
         run: python script.py
 
-      - name: Commit e Push das mudanças
+            - name: Commit e Push das mudanças
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
+          git config --local user.name "github-actions"
+          git config --local user.email "actions@github.com"
           git add vagas.json
-          git commit -m "Atualizando vagas.json"
-          git push
+          git commit -m "Atualização automática do JSON" || exit 0
+          git push https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/Dulcimar-Vieira/vagas-json.git main
