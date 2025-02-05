@@ -1,3 +1,29 @@
+     name: Atualizar JSON de Vagas
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"  # Executa a cada 12 horas
+  workflow_dispatch:  # Permite rodar manualmente
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar o repositório
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.x"
+
+      - name: Instalar dependências
+        run: pip install requests
+
+      - name: Baixar e processar o feed
+        run: python script.py 
+        
       - name: Commit e Push das mudanças
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
