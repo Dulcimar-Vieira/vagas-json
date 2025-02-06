@@ -23,7 +23,9 @@ jobs:
 
       - name: Baixar e processar o feed
         run: python script.py 
-        
+      - name: Listar arquivos gerados
+        run: ls -lah
+  
       - name: Commit e Push das mudanças
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
