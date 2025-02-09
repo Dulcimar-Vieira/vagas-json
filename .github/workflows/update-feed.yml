@@ -1,0 +1,36 @@
+name: Atualizar JSON de Vagas
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"  # Executa a cada 12 horas
+  workflow_dispatch:  # Permite execução manual
+
+jobs:
+  update-json:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar repositório
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.x"
+
+      - name: Instalar dependências
+        run: pip install requests
+
+      - name: Executar script Python
+        run: python script.py
+
+      - name: Configurar Git
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+
+      - name: Commit e Push se houver mudanças
+        run: |
+          git add vagas.json
+          git diff --quiet && git diff --staged --quiet || git commit -m "Atualização automática do JSON"
+          git push
