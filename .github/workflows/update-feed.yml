@@ -34,3 +34,9 @@ jobs:
           git add vagas.json
           git diff --quiet && git diff --staged --quiet || git commit -m "Atualização automática do JSON"
           git push
+    - name: Upload JSON como Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: vagas.json
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
