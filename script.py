@@ -6,6 +6,9 @@ import json
 # URL do feed XML compactado
 FEED_URL = "https://feeds.whatjobs.com/sinerj/sinerj_pt_BR.xml.gz"
 
+print(f"Tamanho do XML: {len(xml_data)} bytes")
+print(f"Primeiros 500 caracteres:\n{xml_data[:500]}")
+
 # Baixar e descompactar o XML
 response = requests.get(FEED_URL)
 if response.status_code == 200:
