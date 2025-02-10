@@ -11,49 +11,40 @@ FEED_URL = "https://feeds.whatjobs.com/sinerj/sinerj_pt_BR.xml.gz"
 JSON_FILE = "vagas.json"
 
 def baixar_feed(url):
-    """Baixa o feed XML compactado e retorna os dados brutos."""
-    response = requests.get(url, timeout=30)
+    """Baixa o feed XML compactado e retorna um objeto de fluxo de bytes."""
+    response = requests.get(url, stream=True, timeout=60)
     
     if response.status_code != 200:
         print(f"❌ Erro ao baixar o feed! Código HTTP: {response.status_code}")
         exit(1)
 
-    print(f"✅ Feed baixado com sucesso! Tamanho: {len(response.content)} bytes")
-    return response.content
+    print("✅ Feed baixado com sucesso!")
+    return io.BytesIO(response.content)
 
-def descompactar_xml(dados_compactados):
-    """Descompacta os dados do arquivo .gz e retorna o XML como string."""
-    try:
-        with gzip.GzipFile(fileobj=io.BytesIO(dados_compactados)) as f:
-            xml_data = f.read().decode("utf-8")
-        print(f"✅ XML descompactado! Tamanho: {len(xml_data)} caracteres")
-        return xml_data
-    except Exception as e:
-        print(f"❌ Erro ao descompactar o XML: {e}")
-        exit(1)
+def extrair_vagas(xml_stream):
+    """Lê o XML compactado e processa os dados sem carregar tudo na memória."""
+    vagas = []
+    
+    with gzip.GzipFile(fileobj=xml_stream) as f:
+        context = ET.iterparse(f, events=("start", "end"))
+        _, root = next(context)  # Obtém o elemento raiz do XML
 
-def converter_xml_para_json(xml_data):
-    """Converte o XML para JSON, extraindo apenas os campos necessários."""
-    try:
-        root = ET.fromstring(xml_data)
-        vagas = []
+        for event, elem in context:
+            if event == "end" and elem.tag == "job":
+                vaga = {
+                    "titulo": elem.findtext("title", "").strip(),
+                    "descricao": elem.findtext("description", "").strip(),
+                    "url": elem.findtext("urlDeeplink", "").strip(),
+                    "empresa": elem.find("company/name").text if elem.find("company/name") is not None else "",
+                    "localizacao": elem.find("locations/location/state").text if elem.find("locations/location/state") is not None else "",
+                }
+                vagas.append(vaga)
 
-        for job in root.findall("job"):
-            vaga = {
-                "titulo": job.findtext("title", "").strip(),
-                "descricao": job.findtext("description", "").strip(),
-                "url": job.findtext("urlDeeplink", "").strip(),
-                "empresa": job.find("company/name").text if job.find("company/name") is not None else "",
-                "localizacao": job.find("locations/location/state").text if job.find("locations/location/state") is not None else "",
-            }
-            vagas.append(vaga)
+                # Libera memória removendo o elemento processado
+                root.clear()
 
         print(f"✅ Extração concluída! Total de vagas: {len(vagas)}")
         return vagas
-
-    except ET.ParseError as e:
-        print(f"❌ Erro ao processar o XML: {e}")
-        exit(1)
 
 def salvar_json(dados, arquivo):
     """Salva os dados extraídos em um arquivo JSON."""
@@ -63,7 +54,6 @@ def salvar_json(dados, arquivo):
 
 # 🏁 Fluxo principal do script
 if __name__ == "__main__":
-    xml_bruto = baixar_feed(FEED_URL)
-    xml_texto = descompactar_xml(xml_bruto)
-    vagas_extraidas = converter_xml_para_json(xml_texto)
+    xml_stream = baixar_feed(FEED_URL)
+    vagas_extraidas = extrair_vagas(xml_stream)
     salvar_json(vagas_extraidas, JSON_FILE)
